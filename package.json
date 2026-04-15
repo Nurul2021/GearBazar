@@ -1,0 +1,49 @@
+{
+  "name": "gearbazar-backend",
+  "version": "1.0.0",
+  "description": "Auto-parts Multi-vendor E-commerce Backend",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js",
+    "lint": "eslint backend/",
+    "lint:fix": "eslint backend/ --fix",
+    "format": "prettier --write backend/**/*.js",
+    "backup": "node backend/scripts/backup.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "autoparts",
+    "multi-vendor",
+    "mern"
+  ],
+  "author": "GearBazar Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.41.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.1.5",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.6.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.8",
+    "pdfkit": "^0.14.0",
+    "qrcode": "^1.5.3",
+    "socket.io": "^4.7.4",
+    "uuid": "^13.0.0",
+    "winston": "^3.11.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3"
+  }
+}
