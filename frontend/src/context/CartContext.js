@@ -1,8 +1,3 @@
-/**
- * Cart Context
- * Provides cart functionality using Redux
- */
-
 "use client";
 
 import { createContext, useContext, useMemo } from "react";
@@ -20,36 +15,22 @@ export function CartProvider({ children }) {
   const itemCount = useSelector(selectCartItemCount);
   const cartTotal = useSelector(selectCartTotal);
 
-  const cart = useMemo(
+  const value = useMemo(
     () => ({
       items: cartItems,
       itemCount,
       total: cartTotal,
-      getCartTotal: () => cartTotal,
-      getItemCount: () => itemCount,
     }),
     [cartItems, itemCount, cartTotal],
   );
 
-  return <CartContext.Provider value={cart}>{children}</CartContext.Provider>;
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
   const context = useContext(CartContext);
   if (!context) {
-    return {
-      items: [],
-      itemCount: 0,
-      total: 0,
-      getCartTotal: () => 0,
-      getItemCount: () => 0,
-      addToCart: () => {},
-      removeFromCart: () => {},
-      updateQuantity: () => {},
-      clearCart: () => {},
-    };
+    throw new Error("useCart must be used within CartProvider");
   }
   return context;
 }
-
-export default CartContext;

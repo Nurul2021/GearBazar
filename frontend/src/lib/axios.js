@@ -10,10 +10,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
-const API_URL = isDemo
-  ? "/api"
-  : process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import { API_URL, isDemo } from "./config";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
