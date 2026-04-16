@@ -3,7 +3,10 @@ import axios from "axios";
 
 const AuthContext = createContext(null);
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
+const API_URL = isDemo
+  ? "/api"
+  : process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -25,14 +28,32 @@ export function AuthProvider({ children }) {
       const res = await axios.get(`${API_URL}/auth/me`);
       setUser(res.data.data);
     } catch (error) {
-      localStorage.removeItem("token");
-      delete axios.defaults.headers.common["Authorization"];
+      if (isDemo) {
+        const demoUser = localStorage.getItem("demoUser");
+        if (demoUser) setUser(JSON.parse(demoUser));
+      } else {
+        localStorage.removeItem("token");
+        delete axios.defaults.headers.common["Authorization"];
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const login = async (email, password) => {
+    if (isDemo) {
+      const res = await axios.post(`${API_URL}/auth/login`, {
+        email,
+        password,
+      });
+      const { token, user } = res.data.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("demoUser", JSON.stringify(user));
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      setUser(user);
+      return user;
+    }
+
     const res = await axios.post(`${API_URL}/auth/login`, { email, password });
     const { token, user } = res.data.data;
     localStorage.setItem("token", token);
@@ -42,6 +63,18 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (userData) => {
+    if (isDemo) {
+      const mockUser = {
+        id: "demo-" + Date.now(),
+        ...userData,
+        role: "customer",
+      };
+      localStorage.setItem("token", "demo-token-" + Date.now());
+      localStorage.setItem("demoUser", JSON.stringify(mockUser));
+      setUser(mockUser);
+      return mockUser;
+    }
+
     const res = await axios.post(`${API_URL}/auth/register`, userData);
     const { token, user } = res.data.data;
     localStorage.setItem("token", token);
@@ -52,6 +85,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("demoUser");
     delete axios.defaults.headers.common["Authorization"];
     setUser(null);
   };
