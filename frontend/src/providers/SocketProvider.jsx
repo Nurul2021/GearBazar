@@ -10,11 +10,17 @@ import { useSelector } from "react-redux";
 import { selectToken } from "@/features/auth/authSlice";
 import toast from "react-hot-toast";
 
-const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
+const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
+const SOCKET_URL = isDemo
+  ? null
+  : process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
 
 export function SocketProvider({ children }) {
   const token = useSelector(selectToken);
+
+  if (isDemo) {
+    return <>{children}</>;
+  }
   const socketRef = useRef(null);
   const connectedRef = useRef(false);
 
