@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
-import { addItem } from "@/features/cart/cartSlice";
+import { addToCart } from "@/features/cart/cartSlice";
 import {
   ChevronLeft,
   Star,
@@ -42,7 +42,7 @@ function ProductContent() {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    dispatch(addItem({ productId: product.id, quantity, product }));
+    dispatch(addToCart({ productId: product.id, quantity, product }));
   };
 
   const getPrice = () => {
