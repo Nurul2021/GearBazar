@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  removeItem,
+  removeFromCart,
   updateQuantity,
   clearCart,
 } from "@/features/cart/cartSlice";
@@ -33,7 +33,7 @@ export default function CartPage() {
   }, [items]);
 
   const handleRemove = (productId) => {
-    dispatch(removeItem(productId));
+    dispatch(removeFromCart(productId));
   };
 
   const handleUpdateQty = (productId, quantity) => {
