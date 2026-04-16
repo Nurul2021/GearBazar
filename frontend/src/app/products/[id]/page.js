@@ -4,8 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useSelector } from "react-redux";
-import { useCart } from "@/context/CartContext";
+import { useDispatch, useSelector } from "react-redux";
+import { addItem } from "@/features/cart/cartSlice";
 import {
   ChevronLeft,
   Star,
@@ -18,10 +18,10 @@ import {
 import { mockProducts } from "@/lib/mockData";
 
 function ProductContent() {
+  const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const productId = searchParams.get("id");
   const { user } = useSelector((state) => state.auth);
-  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +42,7 @@ function ProductContent() {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    await addToCart(product, quantity);
+    dispatch(addItem({ productId: product.id, quantity, product }));
   };
 
   const getPrice = () => {
