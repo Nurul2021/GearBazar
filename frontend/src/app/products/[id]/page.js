@@ -1,20 +1,11 @@
 "use client";
 
-/**
- * Product Detail Page
- * Displays single product with full details, specs, and reviews
- */
-
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSelector } from "react-redux";
 import { useCart } from "@/context/CartContext";
-import DynamicPrice from "@/components/DynamicPrice";
 import {
-  ChevronLeft,
-  ChevronRight,
   Star,
   Heart,
   Share2,
@@ -23,12 +14,13 @@ import {
   RotateCcw,
 } from "lucide-react";
 import axios from "axios";
+import { mockProducts } from "@/lib/mockData";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
+const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
+const API_URL = isDemo ? "/api" : "/api";
 
-function ProductContent() {
-  const searchParams = useSearchParams();
-  const productId = searchParams.get("id");
+export default async function ProductPage({ params }) {
+  const productId = params.id;
   const { user } = useSelector((state) => state.auth);
   const { addToCart } = useCart();
 
@@ -49,10 +41,15 @@ function ProductContent() {
   const fetchProduct = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/products/${productId}`);
-      setProduct(res.data.data);
+      if (isDemo) {
+        const found = mockProducts.find(p => p.id === productId || p.slug === productId);
+        setProduct(found || mockProducts[0]);
+      } else {
+        const res = await axios.get(`${API_URL}/products/${productId}`);
+        setProduct(res.data.data);
+      }
     } catch (error) {
-      console.error("Failed to fetch product:", error);
+      setProduct(mockProducts[0]);
     } finally {
       setLoading(false);
     }
