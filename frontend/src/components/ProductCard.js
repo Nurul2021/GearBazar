@@ -88,7 +88,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
   };
 
   return (
-    <Link href={`/products/${product._id}`} className="block">
+    <Link href={`/products/${product.id || product._id}`} className="block">
       <div className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
         {/* Image Container */}
         <div className="relative h-48 lg:h-56 overflow-hidden">

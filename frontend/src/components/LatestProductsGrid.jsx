@@ -118,7 +118,10 @@ function ProductCard({ product, onAddToCart }) {
   };
 
   return (
-    <Link href={`/products/${product._id}`} className="group block">
+    <Link
+      href={`/products/${product.id || product._id}`}
+      className="group block"
+    >
       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
         <div className="relative h-36 lg:h-40 overflow-hidden">
           <Image

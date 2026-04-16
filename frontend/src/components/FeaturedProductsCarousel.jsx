@@ -227,7 +227,7 @@ function ProductCard({ product }) {
 
   return (
     <Link
-      href={`/products/${product._id}`}
+      href={`/products/${product.id || product._id}`}
       className="flex-shrink-0 w-72 group"
     >
       <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">

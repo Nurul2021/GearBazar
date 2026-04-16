@@ -126,7 +126,7 @@ function SearchContent() {
                 {suggestions.map((suggestion) => (
                   <Link
                     key={suggestion._id}
-                    href={`/products/${suggestion._id}`}
+                    href={`/products/${suggestion.id || suggestion._id}`}
                     className="flex items-center gap-4 p-6 hover:bg-slate-50 rounded-2xl transition-all first:rounded-t-3xl last:rounded-b-3xl group"
                   >
                     <div className="w-20 h-20 bg-slate-100 rounded-2xl overflow-hidden flex-shrink-0 shadow-md group-hover:shadow-lg transition-shadow">
@@ -286,7 +286,7 @@ function SearchContent() {
                     {suggestions.map((suggestion) => (
                       <Link
                         key={suggestion._id}
-                        href={`/products/${suggestion._id}`}
+                        href={`/products/${suggestion.id || suggestion._id}`}
                         className="group bg-white shadow-xl rounded-3xl p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden h-64 flex flex-col"
                       >
                         <div className="w-full h-48 rounded-2xl overflow-hidden mb-6 group-hover:scale-105 transition-transform">
