@@ -146,7 +146,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
           {/* Brand */}
           {product.brand && (
             <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-              {product.brand}
+              {product.brand?.name || product.brand}
             </p>
           )}
 

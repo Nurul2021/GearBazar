@@ -811,7 +811,9 @@ export default function AddNewPartForm() {
                     <p className="font-medium text-slate-900 truncate">
                       {product.title}
                     </p>
-                    <p className="text-sm text-slate-500">{product.brand}</p>
+                    <p className="text-sm text-slate-500">
+                      {product.brand?.name || product.brand}
+                    </p>
                   </div>
                   <span
                     className={`px-2 py-0.5 text-xs font-medium rounded-full ${

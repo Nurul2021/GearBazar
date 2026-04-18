@@ -264,7 +264,7 @@ function ProductCard({ product }) {
 
         <div className="p-4">
           <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-            {product.brand}
+            {product.brand?.name || product.brand}
           </p>
 
           <h3 className="mt-1 text-base font-semibold text-slate-900 line-clamp-2 group-hover:text-red-600 transition-colors">

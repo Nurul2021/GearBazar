@@ -174,7 +174,7 @@ function ProductCard({ product, onAddToCart }) {
 
         <div className="p-3">
           <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-            {product.brand}
+            {product.brand?.name || product.brand}
           </p>
           <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 group-hover:text-red-600 transition-colors mt-1">
             {product.title}

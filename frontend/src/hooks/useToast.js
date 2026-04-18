@@ -15,7 +15,7 @@ export const useToast = () => {
       toast(message, { icon: "⚠️", ...options }),
     loading: (message, options = {}) => toast.loading(message, options),
     dismiss: (id) => toast.dismiss(id),
-    promise: (promise, messages = {}) =>
+    promise: (promise, messages = {}, toastOptions = {}) =>
       toast.promise(
         promise,
         {
@@ -23,7 +23,7 @@ export const useToast = () => {
           success: messages.success || "Success!",
           error: messages.error || "Error occurred",
         },
-        options,
+        toastOptions,
       ),
   };
 };
