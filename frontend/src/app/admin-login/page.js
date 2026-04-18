@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
 
     try {
       const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003/api";
 
       console.log("Attempting login to:", `${API_URL}/auth/admin-login`);
 

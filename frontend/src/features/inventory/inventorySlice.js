@@ -18,7 +18,7 @@ import {
 import api from "@/lib/axios";
 import { selectRole, selectIsVerified } from "@/features/auth/authSlice";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003/api";
 
 const initialState = {
   products: [],

@@ -30,7 +30,7 @@ export function useProducts(filters = {}) {
     queryKey: productKeys.list(filters),
     queryFn: async () => {
       const response = await api.get("/products", { params: filters });
-      return response.data.data;
+      return response.data.data.products;
     },
     staleTime: 5 * 60 * 1000, // 5-minute cache
   });
@@ -70,7 +70,7 @@ export function useLatestProducts(limit = 10) {
       const response = await api.get("/products", {
         params: { sort: "-createdAt", limit },
       });
-      return response.data.data;
+      return response.data.data.products;
     },
     staleTime: 5 * 60 * 1000,
   });

@@ -12,8 +12,10 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL:
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
-    NEXT_PUBLIC_DEMO: process.env.NEXT_PUBLIC_DEMO || "true",
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003/api",
+    NEXT_PUBLIC_DEMO: process.env.NEXT_PUBLIC_DEMO || "false",
+    NEXT_PUBLIC_SOCKET_URL:
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5003",
   },
   webpack: (config) => {
     config.resolve.alias = {

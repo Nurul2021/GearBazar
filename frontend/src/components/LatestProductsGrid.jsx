@@ -70,13 +70,15 @@ export default function LatestProductsGrid() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
-            {(products || []).slice(0, 10).map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onAddToCart={handleAddToCart}
-              />
-            ))}
+            {(Array.isArray(products) ? products.slice(0, 10) : []).map(
+              (product) => (
+                <ProductCard
+                  key={product._id || product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                />
+              ),
+            )}
           </div>
         )}
 

@@ -6,7 +6,7 @@ const AuthContext = createContext(null);
 const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
 const API_URL = isDemo
   ? "/api"
-  : process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  : process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003/api";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

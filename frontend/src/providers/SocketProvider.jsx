@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 const isDemo = process.env.NEXT_PUBLIC_DEMO === "true";
 const SOCKET_URL = isDemo
   ? null
-  : process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
+  : process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5003";
 
 export function SocketProvider({ children }) {
   const token = useSelector(selectToken);
