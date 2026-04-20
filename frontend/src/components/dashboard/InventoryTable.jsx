@@ -13,6 +13,8 @@ import {
   X,
   Check,
 } from "lucide-react";
+import Modal from "../ui/Modal";
+import AddNewPartForm from "./AddNewPartForm";
 
 const categories = [
   "All Categories",
@@ -155,6 +157,7 @@ export default function InventoryTable() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const filteredData = inventoryData.filter((item) => {
     const matchesSearch =
@@ -198,7 +201,10 @@ export default function InventoryTable() {
           </h1>
           <p className="text-slate-500">Manage your products and stock</p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors"
+        >
           <Plus className="w-5 h-5" />
           Add New Product
         </button>
@@ -406,13 +412,13 @@ export default function InventoryTable() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-slate-900">
-                            ${item.publicPrice}
+                            {item.publicPrice}
                           </span>
                           <span className="text-xs text-slate-500">Public</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-green-600">
-                            ${item.wholesalePrice}
+                            {item.wholesalePrice}
                           </span>
                           <span className="text-xs text-slate-400">
                             Wholesale
@@ -491,6 +497,16 @@ export default function InventoryTable() {
           </div>
         </div>
       </div>
+
+      {/* Add Product Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add New Product"
+        size="xl"
+      >
+        <AddNewPartForm onSuccess={() => setShowAddModal(false)} />
+      </Modal>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import {
   DollarSign,
   TrendingUp,
@@ -12,6 +13,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Loader2,
+  Package,
 } from "lucide-react";
 import {
   LineChart,
@@ -22,118 +25,165 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { selectCurrentUser } from "@/features/auth/authSlice";
+import api from "@/lib/axios";
 
-const salesData = [
-  { day: "Mon", earnings: 1200 },
-  { day: "Tue", earnings: 1800 },
-  { day: "Wed", earnings: 1400 },
-  { day: "Thu", earnings: 2100 },
-  { day: "Fri", earnings: 2800 },
-  { day: "Sat", earnings: 3200 },
-  { day: "Sun", earnings: 2400 },
+const defaultSalesData = [
+  { day: "Mon", earnings: 0 },
+  { day: "Tue", earnings: 0 },
+  { day: "Wed", earnings: 0 },
+  { day: "Thu", earnings: 0 },
+  { day: "Fri", earnings: 0 },
+  { day: "Sat", earnings: 0 },
+  { day: "Sun", earnings: 0 },
 ];
 
-const payoutHistory = [
-  {
-    id: 1,
-    date: "2026-04-10",
-    amount: 2500,
-    method: "Bank",
-    status: "Completed",
-  },
-  {
-    id: 2,
-    date: "2026-04-08",
-    amount: 1800,
-    method: "bKash",
-    status: "Completed",
-  },
-  {
-    id: 3,
-    date: "2026-04-05",
-    amount: 5000,
-    method: "Nagad",
-    status: "Pending",
-  },
-  {
-    id: 4,
-    date: "2026-04-02",
-    amount: 1200,
-    method: "Bank",
-    status: "Rejected",
-  },
-  {
-    id: 5,
-    date: "2026-03-28",
-    amount: 3500,
-    method: "Bank",
-    status: "Completed",
-  },
-];
-
-const financeCards = [
-  {
-    label: "Total Revenue",
-    value: "$24,580",
-    subtext: "Gross Earnings",
-    icon: DollarSign,
-    color: "emerald",
-    type: "gross",
-  },
-  {
-    label: "Platform Commission",
-    value: "$2,458",
-    subtext: "10% Fee",
-    icon: TrendingDown,
-    color: "amber",
-    type: "commission",
-  },
-  {
-    label: "Withdrawable Balance",
-    value: "$22,122",
-    subtext: "Net Balance",
-    icon: ArrowUpRight,
-    color: "emerald",
-    type: "net",
-  },
-];
+const defaultPayoutHistory = [];
 
 export default function OverviewSection() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const user = useSelector(selectCurrentUser);
 
-  const handleWithdraw = (e) => {
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    pendingOrders: 0,
+  });
+  const [salesData, setSalesData] = useState(defaultSalesData);
+  const [payoutHistory, setPayoutHistory] = useState(defaultPayoutHistory);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [period, setPeriod] = useState("this_week");
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      if (!user?._id && !user?.id) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await api.get("/dashboard");
+        const data = response.data.data;
+
+        setStats({
+          totalSales: data.totalSales || 0,
+          totalOrders: data.totalOrders || 0,
+          totalProducts: data.totalProducts || 0,
+          pendingOrders: data.pendingOrders || 0,
+        });
+
+        if (data.recentPendingOrders && data.recentPendingOrders.length > 0) {
+          const sampleSales = [...defaultSalesData];
+          data.recentPendingOrders.forEach((order, idx) => {
+            if (idx < 7) {
+              sampleSales[idx].earnings =
+                order.vendorTotal || order.totalAmount || 0;
+            }
+          });
+          setSalesData(sampleSales);
+        }
+      } catch (err) {
+        console.error("Failed to load dashboard:", err);
+        setError(err.message || "Failed to load dashboard");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [user, period]);
+
+  const handleWithdraw = async (e) => {
     e.preventDefault();
-    alert(`Withdrawal request: $${withdrawAmount} via ${paymentMethod}`);
-    setWithdrawAmount("");
-    setPaymentMethod("");
+    if (!withdrawAmount || !paymentMethod) return;
+
+    try {
+      await api.post("/finance/withdraw", {
+        amount: parseFloat(withdrawAmount),
+        method: paymentMethod,
+      });
+      alert("Withdrawal request submitted!");
+      setWithdrawAmount("");
+      setPaymentMethod("");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to submit withdrawal");
+    }
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case "Completed":
+    switch (status?.toLowerCase()) {
+      case "completed":
         return <CheckCircle className="w-4 h-4 text-emerald-600" />;
-      case "Pending":
+      case "pending":
         return <Clock className="w-4 h-4 text-amber-600" />;
-      case "Rejected":
+      case "rejected":
         return <XCircle className="w-4 h-4 text-red-600" />;
       default:
-        return null;
+        return <Clock className="w-4 h-4 text-slate-400" />;
     }
   };
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case "Completed":
+    switch (status?.toLowerCase()) {
+      case "completed":
         return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "Pending":
+      case "pending":
         return "bg-amber-50 text-amber-700 border-amber-200";
-      case "Rejected":
+      case "rejected":
         return "bg-red-50 text-red-700 border-red-200";
       default:
         return "bg-gray-50 text-gray-700 border-gray-200";
     }
   };
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(value || 0);
+  };
+
+  const commission = stats.totalSales * 0.1;
+  const netBalance = stats.totalSales - commission;
+
+  const financeCards = [
+    {
+      label: "Total Revenue",
+      value: formatCurrency(stats.totalSales),
+      subtext: "Gross Earnings",
+      icon: DollarSign,
+      color: "emerald",
+    },
+    {
+      label: "Platform Commission",
+      value: formatCurrency(commission),
+      subtext: "10% Fee",
+      icon: TrendingDown,
+      color: "amber",
+    },
+    {
+      label: "Withdrawable Balance",
+      value: formatCurrency(netBalance),
+      subtext: "Net Balance",
+      icon: ArrowUpRight,
+      color: "emerald",
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+        <span className="ml-3 text-slate-500">Loading dashboard...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -141,6 +191,12 @@ export default function OverviewSection() {
         <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
         <p className="text-slate-500">Manage your earnings and withdrawals</p>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {financeCards.map((card, index) => {
@@ -195,10 +251,14 @@ export default function OverviewSection() {
               </h2>
               <p className="text-sm text-slate-500">Daily earnings this week</p>
             </div>
-            <select className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600">
-              <option>This Week</option>
-              <option>Last Week</option>
-              <option>Last Month</option>
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600"
+            >
+              <option value="this_week">This Week</option>
+              <option value="last_week">Last Week</option>
+              <option value="last_month">Last Month</option>
             </select>
           </div>
           <div className="h-72">
@@ -387,30 +447,43 @@ export default function OverviewSection() {
               </tr>
             </thead>
             <tbody>
-              {payoutHistory.map((payout) => (
-                <tr
-                  key={payout.id}
-                  className="border-b border-slate-100 last:border-0"
-                >
-                  <td className="py-4 text-sm text-slate-600">{payout.date}</td>
-                  <td className="py-4 text-sm font-semibold text-slate-900">
-                    ${payout.amount.toLocaleString()}
-                  </td>
-                  <td className="py-4 text-sm text-slate-600">
-                    {payout.method}
-                  </td>
-                  <td className="py-4">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border ${getStatusBadge(
-                        payout.status,
-                      )}`}
-                    >
-                      {getStatusIcon(payout.status)}
-                      {payout.status}
-                    </span>
+              {payoutHistory.length > 0 ? (
+                payoutHistory.map((payout) => (
+                  <tr
+                    key={payout._id || payout.id}
+                    className="border-b border-slate-100 last:border-0"
+                  >
+                    <td className="py-4 text-sm text-slate-600">
+                      {new Date(
+                        payout.createdAt || payout.date,
+                      ).toLocaleDateString()}
+                    </td>
+                    <td className="py-4 text-sm font-semibold text-slate-900">
+                      {formatCurrency(payout.amount)}
+                    </td>
+                    <td className="py-4 text-sm text-slate-600">
+                      {payout.method}
+                    </td>
+                    <td className="py-4">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border ${getStatusBadge(
+                          payout.status,
+                        )}`}
+                      >
+                        {getStatusIcon(payout.status)}
+                        {payout.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="py-8 text-center text-slate-500">
+                    <Package className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                    <p>No payout history yet</p>
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

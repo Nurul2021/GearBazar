@@ -69,7 +69,7 @@ const partSchema = z
     expireDate: z.string().optional(),
     tags: z.string().optional(),
   })
-  .superrefine((data, ctx) => {
+  .superRefine((data, ctx) => {
     if (data.wholesalePrice > data.publicPrice) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

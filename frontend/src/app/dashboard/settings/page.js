@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import Image from "next/image";
 import {
   User,
@@ -19,7 +20,11 @@ import {
   CheckCircle,
   AlertCircle,
   Upload,
+  Loader2,
 } from "lucide-react";
+import { selectCurrentUser } from "@/features/auth/authSlice";
+import api from "@/lib/axios";
+import toast from "react-hot-toast";
 
 const tabs = [
   { id: "profile", label: "Public Profile", icon: User },
@@ -27,12 +32,13 @@ const tabs = [
   { id: "security", label: "Account Security", icon: Lock },
 ];
 
-const verificationStatus = {
-  status: "verified",
-  verifiedAt: "2026-03-15",
+const defaultVerificationStatus = {
+  status: "pending",
+  verifiedAt: null,
 };
 
 export default function SettingsPage() {
+  const user = useSelector(selectCurrentUser);
   const [activeTab, setActiveTab] = useState("profile");
   const [showPasswords, setShowPasswords] = useState({
     current: false,
@@ -40,17 +46,109 @@ export default function SettingsPage() {
     confirm: false,
   });
   const [formData, setFormData] = useState({
-    shopName: "Gear Bazar Auto Parts",
-    email: "contact@gearbazar.com",
-    address: "123 Motor Street, Dhaka 1200",
+    shopName: "",
+    email: "",
+    address: "",
     logo: null,
+    phone: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState(
+    defaultVerificationStatus,
+  );
 
-  const handleSave = () => {
-    alert("Changes saved successfully!");
+  useEffect(() => {
+    const fetchShopData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get("/shops/me");
+        const shop = response.data.data;
+        if (shop) {
+          setFormData({
+            shopName: shop.shopName || "",
+            email: shop.contactEmail || "",
+            address: shop.shopAddress
+              ? `${shop.shopAddress.street}, ${shop.shopAddress.city}`
+              : "",
+            phone: shop.contactNumber || "",
+            logo: shop.shopLogo?.url || null,
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          });
+          setVerificationStatus({
+            status: shop.isVerified
+              ? "verified"
+              : shop.isPendingVerification
+                ? "pending"
+                : "unverified",
+            verifiedAt: shop.verifiedAt,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load shop data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchShopData();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await api.put("/shops/me", {
+        shopName: formData.shopName,
+        contactEmail: formData.email,
+        contactNumber: formData.phone,
+        shopAddress: {
+          street: formData.address,
+          city: "Dhaka",
+          state: "Dhaka",
+          zipCode: "1200",
+        },
+      });
+      toast.success("Settings saved successfully!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save settings");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (formData.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await api.put("/users/password", {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      });
+      toast.success("Password updated successfully!");
+      setFormData({
+        ...formData,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update password");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -371,7 +469,18 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <button className="mt-4 py-3 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors">
+                <button
+                  onClick={handlePasswordChange}
+                  disabled={
+                    isSaving ||
+                    !formData.currentPassword ||
+                    !formData.newPassword
+                  }
+                  className="mt-4 py-3 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : null}
                   Update Password
                 </button>
               </div>
