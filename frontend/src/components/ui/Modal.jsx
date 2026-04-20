@@ -5,7 +5,8 @@
 
 "use client";
 
-import { forwardRef, useEffect, createPortal } from "react";
+import { forwardRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useLockBodyScroll } from "@/hooks/useLockBodyScroll";
 
