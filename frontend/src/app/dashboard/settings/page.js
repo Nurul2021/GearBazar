@@ -231,7 +231,10 @@ export default function SettingsPage() {
                         type="text"
                         value={formData.shopName}
                         onChange={(e) =>
-                          setFormData({ ...formData, shopName: e.target.value })
+                          setFormData({
+                            ...formData,
+                            shopName: e.target.value,
+                          })
                         }
                         className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       />
@@ -264,7 +267,10 @@ export default function SettingsPage() {
                       <textarea
                         value={formData.address}
                         onChange={(e) =>
-                          setFormData({ ...formData, address: e.target.value })
+                          setFormData({
+                            ...formData,
+                            address: e.target.value,
+                          })
                         }
                         rows={3}
                         className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"

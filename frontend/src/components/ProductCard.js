@@ -38,6 +38,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
     const stars = [];
     const fullStars = Math.floor(rating || 0);
     const hasHalf = (rating || 0) % 1 >= 0.5;
+    const productId = product.id || product._ID;
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
@@ -60,13 +61,19 @@ export default function ProductCard({ product, onWishlistToggle }) {
             viewBox="0 0 20 20"
           >
             <defs>
-              <linearGradient id="halfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient
+                id={`halfGrad-${productId}-${i}`}
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
                 <stop offset="50%" stopColor="currentColor" />
                 <stop offset="50%" stopColor="#e5e7eb" />
               </linearGradient>
             </defs>
             <path
-              fill="url(#halfGrad)"
+              fill={`url(#halfGrad-${productId}-${i})`}
               d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
             />
           </svg>,
@@ -75,7 +82,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
         stars.push(
           <svg
             key={i}
-            className="w-4 h-4 text-gray-300"
+            className="w-4 h-4 text-slate-300"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -88,10 +95,13 @@ export default function ProductCard({ product, onWishlistToggle }) {
   };
 
   return (
-    <Link href={`/products/${product.id || product._id}`} className="block">
-      <div className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+    <Link
+      href={`/products/${product.id || product._id}`}
+      className="block h-full"
+    >
+      <div className="group h-full flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
         {/* Image Container */}
-        <div className="relative h-48 lg:h-56 overflow-hidden">
+        <div className="relative h-48 lg:h-56 overflow-hidden bg-slate-50">
           <Image
             src={
               product.images?.[0] ||
@@ -99,7 +109,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
             }
             alt={product.title}
             fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
 
           {/* Badges */}
@@ -142,7 +152,7 @@ export default function ProductCard({ product, onWishlistToggle }) {
         </div>
 
         {/* Content */}
-        <div className="p-4">
+        <div className="flex-1 flex flex-col p-4">
           {/* Brand */}
           {product.brand && (
             <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
@@ -170,42 +180,47 @@ export default function ProductCard({ product, onWishlistToggle }) {
             <DynamicPrice product={product} showSavings={true} size="md" />
           </div>
 
-          {/* Add to Cart Button */}
-          <button
-            onClick={handleAddToCart}
-            disabled={isAdding || !product.inStock}
-            className={`mt-4 w-full py-2.5 rounded-lg font-medium text-sm transition-all ${
-              product.inStock
-                ? "bg-slate-900 text-white hover:bg-red-600"
-                : "bg-gray-200 text-gray-500 cursor-not-allowed"
-            }`}
-          >
-            {isAdding ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                Adding...
-              </span>
-            ) : product.inStock ? (
-              "Add to Cart"
-            ) : (
-              "Out of Stock"
-            )}
-          </button>
+          {/* Add to Cart Button - Push to bottom */}
+          <div className="mt-auto pt-3">
+            <button
+              onClick={handleAddToCart}
+              disabled={isAdding || !product.inStock}
+              className={`w-full py-2.5 rounded-xl font-medium text-sm transition-all ${
+                product.inStock
+                  ? "bg-slate-900 text-white hover:bg-red-600 active:bg-red-700"
+                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
+              }`}
+            >
+              {isAdding ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin h-4 w-4 mr-2"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647.z"
+                    />
+                  </svg>
+                  Adding...
+                </span>
+              ) : product.inStock ? (
+                "Add to Cart"
+              ) : (
+                "Out of Stock"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </Link>

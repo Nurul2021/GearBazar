@@ -5,9 +5,6 @@
 
 import "@/styles/globals.css";
 import { Providers } from "./providers";
-import Navbar from "../components/Navbar";
-import RegistrationBanner from "../components/RegistrationBanner";
-import Footer from "../components/Footer";
 
 export const metadata = {
   title: "GearBazar - Auto Parts Marketplace",
@@ -30,14 +27,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <Providers>
-          <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Navbar />
-            <main className="flex-grow">{children}</main>
-            <RegistrationBanner />
-            <Footer />
-          </div>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

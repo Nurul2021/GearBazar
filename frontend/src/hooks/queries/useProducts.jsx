@@ -24,13 +24,13 @@ export const productKeys = {
   search: (query) => [...productKeys.all, "search", query],
 };
 
-// Fetch Products with Pagination
+// Fetch Products with Pagination (Vendor)
 export function useProducts(filters = {}) {
   return useQuery({
     queryKey: productKeys.list(filters),
     queryFn: async () => {
-      const response = await api.get("/products", { params: filters });
-      return response.data.data.products;
+      const response = await api.get("/inventory", { params: filters });
+      return response.data.data;
     },
     staleTime: 5 * 60 * 1000, // 5-minute cache
   });

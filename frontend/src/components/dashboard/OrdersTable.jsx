@@ -17,14 +17,15 @@ import {
   X,
   CheckCircle,
   Clock,
+  XCircle,
   Truck,
   PackageCheck,
-  CircleDot,
   Loader2,
 } from "lucide-react";
 import {
   useVendorOrders,
   useUpdateVendorOrderStatus,
+  useCancelOrder,
 } from "@/hooks/queries/useOrders";
 import { selectCurrentUser } from "@/features/auth/authSlice";
 
@@ -32,20 +33,14 @@ const statusOptions = [
   {
     value: "pending",
     label: "Pending",
-    color: "bg-gray-100 text-gray-700",
-    icon: CircleDot,
+    color: "bg-yellow-100 text-yellow-700",
+    icon: Clock,
   },
   {
     value: "confirmed",
     label: "Confirmed",
     color: "bg-blue-100 text-blue-700",
-    icon: Clock,
-  },
-  {
-    value: "processing",
-    label: "Processing",
-    color: "bg-blue-100 text-blue-700",
-    icon: Clock,
+    icon: CheckCircle,
   },
   {
     value: "shipped",
@@ -59,14 +54,20 @@ const statusOptions = [
     color: "bg-green-100 text-green-700",
     icon: PackageCheck,
   },
+  {
+    value: "cancelled",
+    label: "Cancelled",
+    color: "bg-red-100 text-red-700",
+    icon: XCircle,
+  },
 ];
 
 const statusFlow = {
-  pending: ["confirmed"],
-  confirmed: ["processing"],
-  processing: ["shipped"],
-  shipped: ["delivered"],
+  pending: ["confirmed", "cancelled"],
+  confirmed: ["shipped", "cancelled"],
+  shipped: ["delivered", "cancelled"],
   delivered: [],
+  cancelled: [],
 };
 
 function getStatusConfig(status) {
@@ -78,7 +79,7 @@ export default function OrdersTable() {
   const vendorId = user?._id || user?.id;
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const {
@@ -86,10 +87,11 @@ export default function OrdersTable() {
     isLoading,
     error,
   } = useVendorOrders(vendorId, {
-    status: statusFilter !== "all" ? statusFilter : undefined,
+    status: activeTab !== "all" ? activeTab : undefined,
   });
 
   const updateStatus = useUpdateVendorOrderStatus();
+  const cancelOrder = useCancelOrder();
 
   const orders = ordersData?.data || ordersData?.orders || ordersData || [];
 
@@ -144,6 +146,106 @@ export default function OrdersTable() {
         },
       ],
     },
+    {
+      _id: "demo-3",
+      orderNumber: "ORD-003",
+      orderStatus: "pending",
+      createdAt: new Date(Date.now() - 172800000).toISOString(),
+      totalPrice: 189.5,
+      customer: { name: "Mike Johnson", email: "mike@example.com" },
+      shippingAddress: {
+        name: "Mike Johnson",
+        email: "mike@example.com",
+        phone: "+1555555555",
+        street: "789 Pine Rd",
+        city: "Chicago",
+        state: "IL",
+        zipCode: "60601",
+      },
+      orderItems: [
+        {
+          product: { title: "Bosch Spark Plugs Set", images: [] },
+          quantity: 4,
+          price: 47.37,
+          subtotal: 189.5,
+        },
+      ],
+    },
+    {
+      _id: "demo-4",
+      orderNumber: "ORD-004",
+      orderStatus: "shipped",
+      createdAt: new Date(Date.now() - 259200000).toISOString(),
+      totalPrice: 349.99,
+      customer: { name: "Sarah Wilson", email: "sarah@example.com" },
+      shippingAddress: {
+        name: "Sarah Wilson",
+        email: "sarah@example.com",
+        phone: "+1444444444",
+        street: "321 Elm St",
+        city: "Houston",
+        state: "TX",
+        zipCode: "77001",
+      },
+      orderItems: [
+        {
+          product: { title: "K&N Air Filter", images: [] },
+          quantity: 1,
+          price: 349.99,
+          subtotal: 349.99,
+        },
+      ],
+    },
+    {
+      _id: "demo-5",
+      orderNumber: "ORD-005",
+      orderStatus: "delivered",
+      createdAt: new Date(Date.now() - 432000000).toISOString(),
+      totalPrice: 599.0,
+      customer: { name: "Tom Brown", email: "tom@example.com" },
+      shippingAddress: {
+        name: "Tom Brown",
+        email: "tom@example.com",
+        phone: "+1666666666",
+        street: "654 Maple Ave",
+        city: "Phoenix",
+        state: "AZ",
+        zipCode: "85001",
+      },
+      orderItems: [
+        {
+          product: { title: "Performance Exhaust System", images: [] },
+          quantity: 1,
+          price: 599.0,
+          subtotal: 599.0,
+        },
+      ],
+    },
+    {
+      _id: "demo-6",
+      orderNumber: "ORD-006",
+      orderStatus: "cancelled",
+      createdAt: new Date(Date.now() - 518400000).toISOString(),
+      totalPrice: 129.99,
+      customer: { name: "Lisa Green", email: "lisa@example.com" },
+      shippingAddress: {
+        name: "Lisa Green",
+        email: "lisa@example.com",
+        phone: "+1777777777",
+        street: "987 Cedar Ln",
+        city: "Philadelphia",
+        state: "PA",
+        zipCode: "19101",
+      },
+      orderItems: [
+        {
+          product: { title: "WD-40 Specialist", images: [] },
+          quantity: 3,
+          price: 43.33,
+          subtotal: 129.99,
+        },
+      ],
+    },
   ];
 
   const displayOrders =
@@ -153,19 +255,29 @@ export default function OrdersTable() {
     const orderNumber = order.orderNumber || order.orderId || order._id || "";
     const customerName =
       order.customer?.name || order.shippingAddress?.name || "";
-    return (
+    const matchesSearch =
       orderNumber.toLowerCase().includes(search.toLowerCase()) ||
-      customerName.toLowerCase().includes(search.toLowerCase())
-    );
+      customerName.toLowerCase().includes(search.toLowerCase());
+    const matchesTab = activeTab === "all" || order.orderStatus === activeTab;
+    return matchesSearch && matchesTab;
   });
 
   const handleStatusChange = (orderId, newStatus) => {
-    updateStatus.mutate(
-      { orderId, status: newStatus, vendorId },
-      {
-        onError: () => {},
-      },
-    );
+    if (newStatus === "cancelled") {
+      cancelOrder.mutate(
+        { orderId },
+        {
+          onError: () => {},
+        },
+      );
+    } else {
+      updateStatus.mutate(
+        { orderId, status: newStatus, vendorId },
+        {
+          onError: () => {},
+        },
+      );
+    }
   };
 
   const formatDate = (date) => {
@@ -178,9 +290,9 @@ export default function OrdersTable() {
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("bn-BD", {
       style: "currency",
-      currency: "USD",
+      currency: "BDT",
     }).format(price || 0);
   };
 
@@ -235,20 +347,33 @@ export default function OrdersTable() {
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2.5 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-red-500"
+        </div>
+        <div className="flex items-center gap-2 mt-4 border-b border-gray-100">
+          {[
+            "all",
+            "pending",
+            "confirmed",
+            "shipped",
+            "delivered",
+            "cancelled",
+          ].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                activeTab === tab
+                  ? "text-red-600 border-red-600"
+                  : "text-slate-500 border-transparent hover:text-slate-700"
+              }`}
             >
-              <option value="all">All Status</option>
-              {statusOptions.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab !== "all" && (
+                <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100">
+                  {displayOrders.filter((o) => o.orderStatus === tab).length}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 

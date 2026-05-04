@@ -145,9 +145,10 @@ axiosInstance.interceptors.response.use(
 
           window.dispatchEvent(new Event("logout"));
 
-          if (window.location.pathname !== "/login") {
-            window.location.href = "/login?session=expired";
-          }
+          // AUTH DISABLED - No redirect
+          // if (window.location.pathname !== "/login") {
+          //   window.location.href = "/login?session=expired";
+          // }
         }
 
         return Promise.reject(refreshError);

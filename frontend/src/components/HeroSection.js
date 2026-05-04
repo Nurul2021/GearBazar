@@ -78,7 +78,8 @@ export default function HeroSection() {
   const router = useRouter();
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
-  const [year, setYear] = useState("");
+  const [yearFrom, setYearFrom] = useState("");
+  const [yearTo, setYearTo] = useState("");
   const [models, setModels] = useState([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -117,7 +118,8 @@ export default function HeroSection() {
     const params = new URLSearchParams();
     if (make) params.set("make", make);
     if (model) params.set("model", model);
-    if (year) params.set("year", year);
+    if (yearFrom) params.set("yearFrom", yearFrom);
+    if (yearTo) params.set("yearTo", yearTo);
     router.push(`/products?${params.toString()}`);
   };
 
@@ -198,7 +200,7 @@ export default function HeroSection() {
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 active:scale-95"
               >
                 <Search className="w-5 h-5" />
-                Start Shopping
+                Purchas Now
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
@@ -252,7 +254,7 @@ export default function HeroSection() {
               </div>
 
               {/* Dropdowns Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Make Dropdown */}
                 <div className="relative">
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
@@ -339,38 +341,82 @@ export default function HeroSection() {
                   )}
                 </div>
 
-                {/* Year Dropdown */}
+                {/* Year From Dropdown */}
                 <div className="relative">
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
-                    Year
+                    Year From
                   </label>
                   <button
                     type="button"
                     onClick={() =>
-                      setOpenDropdown(openDropdown === "year" ? null : "year")
+                      setOpenDropdown(
+                        openDropdown === "yearFrom" ? null : "yearFrom",
+                      )
                     }
                     className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left transition-all focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   >
                     <span
-                      className={`text-sm truncate ${year ? "text-slate-900" : "text-slate-400"}`}
+                      className={`text-sm truncate ${yearFrom ? "text-slate-900" : "text-slate-400"}`}
                     >
-                      {year || "Select Year"}
+                      {yearFrom || "From"}
                     </span>
                     <ChevronDown
-                      className={`w-4 h-4 text-slate-400 transition-transform ${openDropdown === "year" ? "rotate-180" : ""}`}
+                      className={`w-4 h-4 text-slate-400 transition-transform ${openDropdown === "yearFrom" ? "rotate-180" : ""}`}
                     />
                   </button>
-                  {openDropdown === "year" && (
+                  {openDropdown === "yearFrom" && (
                     <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-auto">
                       {YEARS.map((yr) => (
                         <button
                           key={yr}
                           type="button"
                           onClick={() => {
-                            setYear(yr.toString());
+                            setYearFrom(yr.toString());
                             setOpenDropdown(null);
                           }}
-                          className={`w-full px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors ${year === yr.toString() ? "bg-red-50 text-red-600 font-medium" : "text-slate-700"}`}
+                          className={`w-full px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors ${yearFrom === yr.toString() ? "bg-red-50 text-red-600 font-medium" : "text-slate-700"}`}
+                        >
+                          {yr}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Year To Dropdown */}
+                <div className="relative">
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                    Year To
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenDropdown(
+                        openDropdown === "yearTo" ? null : "yearTo",
+                      )
+                    }
+                    className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left transition-all focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <span
+                      className={`text-sm truncate ${yearTo ? "text-slate-900" : "text-slate-400"}`}
+                    >
+                      {yearTo || "To"}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-slate-400 transition-transform ${openDropdown === "yearTo" ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {openDropdown === "yearTo" && (
+                    <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-auto">
+                      {YEARS.map((yr) => (
+                        <button
+                          key={yr}
+                          type="button"
+                          onClick={() => {
+                            setYearTo(yr.toString());
+                            setOpenDropdown(null);
+                          }}
+                          className={`w-full px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors ${yearTo === yr.toString() ? "bg-red-50 text-red-600 font-medium" : "text-slate-700"}`}
                         >
                           {yr}
                         </button>
@@ -383,7 +429,7 @@ export default function HeroSection() {
               {/* Find Button */}
               <button
                 onClick={handleFindParts}
-                disabled={!make && !model && !year}
+                disabled={!make && !model && !yearFrom && !yearTo}
                 className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 <Search className="w-5 h-5" />
