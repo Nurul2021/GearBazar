@@ -1,10 +1,6 @@
-/**
- * Root Layout
- * Main application layout with providers
- */
-
 import "@/styles/globals.css";
 import { Providers } from "./providers";
+import ConditionalFooter from "@/components/ConditionalFooter";
 
 export const metadata = {
   title: "GearBazar - Auto Parts Marketplace",
@@ -26,8 +22,11 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>
-        <Providers>{children}</Providers>
+      <body className="font-['Inter',sans-serif]">
+        <Providers>
+          {children}
+          <ConditionalFooter />
+        </Providers>
       </body>
     </html>
   );

@@ -1,617 +1,711 @@
 "use client";
-
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
-  Search,
-  Filter,
   Package,
   AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  ArrowUpDown,
+  AlertCircle,
+  DollarSign,
+  Search,
+  Filter,
   Download,
-  Pencil,
-  Plus,
+  Edit,
+  History,
+  ChevronDown,
+  Check,
   X,
-  Save,
-  Warehouse,
-  TrendingDown,
-  TrendingUp,
-  BarChart3,
-  Box,
+  Plus,
+  Minus,
   Truck,
+  Store,
+  Warehouse,
+  Tag,
+  BarChart3,
+  Layers,
+  ShoppingBag,
+  Save,
+  Trash2,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  ArrowUpDown,
 } from "lucide-react";
 
-const initialInventory = [
+const allProducts = [
   {
     id: 1,
+    sku: "GB-ENG-001",
+    barcode: "123456789012",
     name: "Engine Oil 5W-30",
-    sku: "EO-5W30-001",
-    vendor: "Rahim Auto Parts",
-    warehouse: "Dhaka Central",
-    currentStock: 245,
-    reserved: 12,
-    available: 233,
-    lowStockAlert: 50,
-    status: "In Stock",
+    thumbnail:
+      "https://images.unsplash.com/photo-1494972308805-463bc619d34e?w=100",
+    vendor: { name: "AutoParts Pro", type: "shop" },
     category: "Engine Parts",
+    brand: "Castrol",
+    publicPrice: 4500,
+    wholesalePrice: 3200,
+    warehouse: { name: "Central Warehouse", shelf: "A-12" },
+    stock: 15,
+    lowStockThreshold: 5,
+    lastUpdated: "2026-05-02",
+    auditHistory: [
+      {
+        date: "2026-05-02",
+        user: "Admin",
+        oldStock: 12,
+        newStock: 15,
+        reason: "Restock",
+      },
+      {
+        date: "2026-04-28",
+        user: "AutoParts Pro",
+        oldStock: 15,
+        newStock: 12,
+        reason: "Sale",
+      },
+    ],
   },
   {
     id: 2,
-    name: "Brake Pad Set Front",
-    sku: "BP-F-001",
-    vendor: "Karim Spare Center",
-    warehouse: "Dhaka Central",
-    currentStock: 89,
-    reserved: 5,
-    available: 84,
-    lowStockAlert: 30,
-    status: "In Stock",
-    category: "Brake System",
+    sku: "GB-BRK-002",
+    barcode: "123456789013",
+    name: "Brake Pads Set",
+    thumbnail:
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100",
+    vendor: { name: "Garage X", type: "garage" },
+    category: "Brake Systems",
+    brand: "Bosch",
+    publicPrice: 8900,
+    wholesalePrice: 6500,
+    warehouse: { name: "North Warehouse", shelf: "B-07" },
+    stock: 3,
+    lowStockThreshold: 5,
+    lastUpdated: "2026-05-03",
+    auditHistory: [
+      {
+        date: "2026-05-03",
+        user: "Garage X",
+        oldStock: 5,
+        newStock: 3,
+        reason: "Installation",
+      },
+    ],
   },
   {
     id: 3,
-    name: "Air Filter Element",
-    sku: "AF-EL-002",
-    vendor: "AutoMax Ltd.",
-    warehouse: "Chittagong",
-    currentStock: 156,
-    reserved: 8,
-    available: 148,
-    lowStockAlert: 40,
-    status: "In Stock",
+    sku: "GB-FLT-003",
+    barcode: "123456789014",
+    name: "Oil Filter",
+    thumbnail:
+      "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=100",
+    vendor: { name: "AutoParts Pro", type: "shop" },
     category: "Filters",
+    brand: "Denso",
+    publicPrice: 1200,
+    wholesalePrice: 850,
+    warehouse: { name: "Central Warehouse", shelf: "C-23" },
+    stock: 0,
+    lowStockThreshold: 10,
+    lastUpdated: "2026-05-01",
+    auditHistory: [
+      {
+        date: "2026-05-01",
+        user: "Admin",
+        oldStock: 8,
+        newStock: 0,
+        reason: "Damaged",
+      },
+    ],
   },
   {
     id: 4,
-    name: "Spark Plug Iridium",
-    sku: "SP-IR-004",
-    vendor: "ProParts BD",
-    warehouse: "Dhaka Central",
-    currentStock: 23,
-    reserved: 3,
-    available: 20,
-    lowStockAlert: 25,
-    status: "Low Stock",
+    sku: "GB-ELE-004",
+    barcode: "123456789015",
+    name: "Spark Plugs (4pcs)",
+    thumbnail:
+      "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=100",
+    vendor: { name: "Garage X", type: "garage" },
     category: "Electrical",
+    brand: "NGK",
+    publicPrice: 3400,
+    wholesalePrice: 2400,
+    warehouse: { name: "North Warehouse", shelf: "D-15" },
+    stock: 45,
+    lowStockThreshold: 10,
+    lastUpdated: "2026-05-04",
+    auditHistory: [
+      {
+        date: "2026-05-04",
+        user: "Garage X",
+        oldStock: 40,
+        newStock: 45,
+        reason: "Restock",
+      },
+    ],
   },
   {
     id: 5,
+    sku: "GB-BDY-005",
+    barcode: "123456789016",
     name: "Headlight Assembly",
-    sku: "HL-LED-003",
-    vendor: "GearHead Parts",
-    warehouse: "Sylhet",
-    currentStock: 0,
-    reserved: 0,
-    available: 0,
-    lowStockAlert: 10,
-    status: "Out of Stock",
+    thumbnail:
+      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=100",
+    vendor: { name: "AutoParts Pro", type: "shop" },
     category: "Body Parts",
+    brand: "Bosch",
+    publicPrice: 15600,
+    wholesalePrice: 11200,
+    warehouse: { name: "Central Warehouse", shelf: "E-09" },
+    stock: 8,
+    lowStockThreshold: 5,
+    lastUpdated: "2026-05-03",
+    auditHistory: [
+      {
+        date: "2026-05-03",
+        user: "Admin",
+        oldStock: 10,
+        newStock: 8,
+        reason: "Return",
+      },
+    ],
   },
   {
     id: 6,
-    name: "Shock Absorber",
-    sku: "SA-002",
-    vendor: "Rahim Auto Parts",
-    warehouse: "Dhaka Central",
-    currentStock: 67,
-    reserved: 4,
-    available: 63,
-    lowStockAlert: 20,
-    status: "In Stock",
-    category: "Suspension",
-  },
-  {
-    id: 7,
-    name: "Clutch Plate",
-    sku: "CP-001",
-    vendor: "Karim Spare Center",
-    warehouse: "Chittagong",
-    currentStock: 12,
-    reserved: 1,
-    available: 11,
-    lowStockAlert: 15,
-    status: "Low Stock",
-    category: "Transmission",
-  },
-  {
-    id: 8,
-    name: "Radiator Coolant",
-    sku: "RC-001",
-    vendor: "AutoMax Ltd.",
-    warehouse: "Dhaka Central",
-    currentStock: 189,
-    reserved: 10,
-    available: 179,
-    lowStockAlert: 50,
-    status: "In Stock",
-    category: "Engine Parts",
-  },
-  {
-    id: 9,
-    name: "Timing Belt",
-    sku: "TB-001",
-    vendor: "ProParts BD",
-    warehouse: "Sylhet",
-    currentStock: 34,
-    reserved: 2,
-    available: 32,
-    lowStockAlert: 20,
-    status: "In Stock",
-    category: "Engine Parts",
-  },
-  {
-    id: 10,
-    name: "Fuel Filter",
-    sku: "FF-001",
-    vendor: "GearHead Parts",
-    warehouse: "Dhaka Central",
-    currentStock: 8,
-    reserved: 0,
-    available: 8,
-    lowStockAlert: 30,
-    status: "Low Stock",
+    sku: "GB-ENG-006",
+    barcode: "123456789017",
+    name: "Air Filter",
+    thumbnail:
+      "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=100",
+    vendor: { name: "Garage Y", type: "garage" },
     category: "Filters",
-  },
-  {
-    id: 11,
-    name: "Alternator",
-    sku: "ALT-001",
-    vendor: "Rahim Auto Parts",
-    warehouse: "Chittagong",
-    currentStock: 45,
-    reserved: 3,
-    available: 42,
-    lowStockAlert: 15,
-    status: "In Stock",
-    category: "Electrical",
-  },
-  {
-    id: 12,
-    name: "Brake Disc",
-    sku: "BD-001",
-    vendor: "Karim Spare Center",
-    warehouse: "Dhaka Central",
-    currentStock: 0,
-    reserved: 0,
-    available: 0,
-    lowStockAlert: 20,
-    status: "Out of Stock",
-    category: "Brake System",
+    brand: "Denso",
+    publicPrice: 1800,
+    wholesalePrice: 1200,
+    warehouse: { name: "South Warehouse", shelf: "F-22" },
+    stock: 2,
+    lowStockThreshold: 5,
+    lastUpdated: "2026-05-02",
+    auditHistory: [
+      {
+        date: "2026-05-02",
+        user: "Garage Y",
+        oldStock: 7,
+        newStock: 2,
+        reason: "Sale",
+      },
+    ],
   },
 ];
 
-const warehouses = ["All Warehouses", "Dhaka Central", "Chittagong", "Sylhet"];
+const vendors = [
+  { id: 1, name: "AutoParts Pro", type: "shop" },
+  { id: 2, name: "Garage X", type: "garage" },
+  { id: 3, name: "Garage Y", type: "garage" },
+];
+
 const categories = [
-  "All Categories",
   "Engine Parts",
-  "Brake System",
+  "Brake Systems",
   "Filters",
   "Electrical",
-  "Suspension",
-  "Transmission",
   "Body Parts",
 ];
+const brands = ["Bosch", "Denso", "NGK", "Castrol", "Mobil"];
 
-function StockUpdateModal({ item, onClose, onSave }) {
-  const [form, setForm] = useState({ adjustment: "", type: "add", reason: "" });
-
-  const handleSave = () => {
-    const qty = Number(form.adjustment);
-    if (!qty || qty <= 0) return;
-    const newStock =
-      form.type === "add"
-        ? item.currentStock + qty
-        : Math.max(0, item.currentStock - qty);
-    onSave(item.id, newStock, form.reason);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900">
-            Update Stock - {item.name}
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg hover:bg-slate-100"
-          >
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="bg-slate-50 rounded-lg p-4">
-            <p className="text-sm text-slate-500">Current Stock</p>
-            <p className="text-2xl font-bold text-slate-900">
-              {item.currentStock} units
-            </p>
-            <p className="text-xs text-slate-500 mt-1">
-              Available: {item.available} | Reserved: {item.reserved}
-            </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Adjustment Type
-            </label>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setForm((prev) => ({ ...prev, type: "add" }))}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 text-sm font-medium ${
-                  form.type === "add"
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                    : "border-slate-200 text-slate-600"
-                }`}
-              >
-                <TrendingUp className="w-4 h-4" /> Add Stock
-              </button>
-              <button
-                onClick={() => setForm((prev) => ({ ...prev, type: "remove" }))}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 text-sm font-medium ${
-                  form.type === "remove"
-                    ? "border-red-500 bg-red-50 text-red-700"
-                    : "border-slate-200 text-slate-600"
-                }`}
-              >
-                <TrendingDown className="w-4 h-4" /> Remove Stock
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Quantity *
-            </label>
-            <input
-              type="number"
-              value={form.adjustment}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, adjustment: e.target.value }))
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Enter quantity"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Reason
-            </label>
-            <select
-              value={form.reason}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, reason: e.target.value }))
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Select reason</option>
-              <option value="New Stock Received">New Stock Received</option>
-              <option value="Damaged Products">Damaged Products</option>
-              <option value="Returned by Customer">Returned by Customer</option>
-              <option value="Inventory Correction">Inventory Correction</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
-          >
-            <Save className="w-4 h-4" /> Update Stock
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function InventoryPage() {
-  const [inventory, setInventory] = useState(initialInventory);
-  const [search, setSearch] = useState("");
-  const [warehouseFilter, setWarehouseFilter] = useState("All Warehouses");
-  const [categoryFilter, setCategoryFilter] = useState("All Categories");
+export default function MasterInventory() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedVendor, setSelectedVendor] = useState("all");
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
   const [stockFilter, setStockFilter] = useState("all");
-  const [sortConfig, setSortConfig] = useState({
-    key: "name",
-    direction: "asc",
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
+  const [newStock, setNewStock] = useState(0);
+  const [stockReason, setStockReason] = useState("");
+  const [showAuditDrawer, setShowAuditDrawer] = useState(false);
+  const [auditData, setAuditData] = useState([]);
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
   });
-  const [showModal, setShowModal] = useState(null);
+  const [selectAll, setSelectAll] = useState(false);
 
-  const filteredInventory = useMemo(() => {
-    let result = [...inventory];
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (i) =>
-          i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q),
-      );
-    }
-    if (warehouseFilter !== "All Warehouses")
-      result = result.filter((i) => i.warehouse === warehouseFilter);
-    if (categoryFilter !== "All Categories")
-      result = result.filter((i) => i.category === categoryFilter);
-    if (stockFilter === "in_stock")
-      result = result.filter((i) => i.status === "In Stock");
-    if (stockFilter === "low_stock")
-      result = result.filter((i) => i.status === "Low Stock");
-    if (stockFilter === "out_of_stock")
-      result = result.filter((i) => i.status === "Out of Stock");
-    result.sort((a, b) => {
-      const aVal = a[sortConfig.key];
-      const bVal = b[sortConfig.key];
-      if (sortConfig.direction === "asc") return aVal > bVal ? 1 : -1;
-      return aVal < bVal ? 1 : -1;
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const globalStats = useMemo(() => {
+    const totalSku = allProducts.length;
+    const outOfStock = allProducts.filter((p) => p.stock === 0).length;
+    const lowStock = allProducts.filter(
+      (p) => p.stock > 0 && p.stock < p.lowStockThreshold,
+    ).length;
+    const totalValue = allProducts.reduce(
+      (sum, p) => sum + p.stock * p.wholesalePrice,
+      0,
+    );
+    return { totalSku, outOfStock, lowStock, totalValue };
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter((product) => {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch =
+          product.name.toLowerCase().includes(query) ||
+          product.sku.toLowerCase().includes(query) ||
+          product.barcode.includes(query);
+        if (!matchesSearch) return false;
+      }
+      if (selectedVendor !== "all" && product.vendor.name !== selectedVendor)
+        return false;
+      if (
+        selectedCategories.length > 0 &&
+        !selectedCategories.includes(product.category)
+      )
+        return false;
+      if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand))
+        return false;
+      if (stockFilter === "inStock") return product.stock > 0;
+      if (stockFilter === "lowStock")
+        return product.stock > 0 && product.stock < product.lowStockThreshold;
+      if (stockFilter === "outOfStock") return product.stock === 0;
+      return true;
     });
-    return result;
   }, [
-    inventory,
-    search,
-    warehouseFilter,
-    categoryFilter,
+    searchQuery,
+    selectedVendor,
+    selectedCategories,
+    selectedBrands,
     stockFilter,
-    sortConfig,
   ]);
 
-  const handleSort = (key) => {
-    setSortConfig((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-    }));
+  const toggleProductSelection = (id) => {
+    if (selectedProductIds.includes(id)) {
+      setSelectedProductIds(selectedProductIds.filter((pid) => pid !== id));
+    } else {
+      setSelectedProductIds([...selectedProductIds, id]);
+    }
   };
 
-  const handleStockUpdate = (id, newStock, reason) => {
-    setInventory((prev) =>
-      prev.map((item) => {
-        if (item.id !== id) return item;
-        const status =
-          newStock === 0
-            ? "Out of Stock"
-            : newStock <= item.lowStockAlert
-              ? "Low Stock"
-              : "In Stock";
-        return {
-          ...item,
-          currentStock: newStock,
-          available: newStock - item.reserved,
-          status,
-        };
-      }),
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedProductIds([]);
+    } else {
+      setSelectedProductIds(filteredProducts.map((p) => p.id));
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const openStockModal = (product) => {
+    setCurrentProduct(product);
+    setNewStock(product.stock);
+    setStockReason("");
+    setShowStockModal(true);
+  };
+
+  const saveStockUpdate = () => {
+    // Mock save logic
+    setToast({
+      show: true,
+      message: `Stock updated for ${currentProduct.name}`,
+      type: "success",
+    });
+    setShowStockModal(false);
+    setTimeout(() => setToast({ ...toast, show: false }), 3000);
+  };
+
+  const openAuditDrawer = (product) => {
+    setAuditData(product.auditHistory);
+    setShowAuditDrawer(true);
+  };
+
+  const handleBulkAction = (action) => {
+    setToast({
+      show: true,
+      message: `${action} applied to ${selectedProductIds.length} items`,
+      type: "success",
+    });
+    setSelectedProductIds([]);
+    setSelectAll(false);
+    setTimeout(() => setToast({ ...toast, show: false }), 3000);
+  };
+
+  const updateThreshold = (productId, newThreshold) => {
+    // Mock threshold update
+    console.log(`Updated threshold for ${productId} to ${newThreshold}`);
+  };
+
+  const getStockColor = (stock, threshold) => {
+    if (stock === 0) return "text-red-600 bg-red-50";
+    if (stock < threshold) return "text-amber-600 bg-amber-50";
+    return "text-emerald-600 bg-emerald-50";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 animate-pulse"
+            >
+              <div className="h-4 bg-slate-200 rounded w-1/2 mb-3"></div>
+              <div className="h-8 bg-slate-200 rounded w-3/4"></div>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="h-12 bg-slate-100 rounded animate-pulse"
+              ></div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
-  };
-
-  const stats = useMemo(() => {
-    const total = inventory.reduce((s, i) => s + i.currentStock, 0);
-    const inStock = inventory.filter((i) => i.status === "In Stock").length;
-    const lowStock = inventory.filter((i) => i.status === "Low Stock").length;
-    const outOfStock = inventory.filter(
-      (i) => i.status === "Out of Stock",
-    ).length;
-    return { total, inStock, lowStock, outOfStock };
-  }, [inventory]);
-
-  const SortIcon = ({ column }) => (
-    <button
-      onClick={() => handleSort(column)}
-      className="inline-flex items-center gap-1 hover:text-slate-900"
-    >
-      <ArrowUpDown className="w-3 h-3" />
-    </button>
-  );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            Inventory Management
+            Master Inventory
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Track and manage stock across warehouses
+          <p className="text-slate-500 text-sm">
+            Manage all products from vendors, shops, and garages
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-          <Download className="w-4 h-4" /> Export Report
+        <button
+          onClick={() => handleBulkAction("Export to CSV")}
+          className="px-4 py-2 border border-slate-200 rounded-lg text-sm flex items-center gap-2 hover:bg-slate-50"
+        >
+          <Download size={16} /> Export CSV
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          {
-            label: "Total Items",
-            value: stats.total,
-            icon: Package,
-            color: "indigo",
-          },
-          {
-            label: "In Stock",
-            value: stats.inStock,
-            icon: CheckCircle2,
-            color: "emerald",
-          },
-          {
-            label: "Low Stock",
-            value: stats.lowStock,
-            icon: AlertTriangle,
-            color: "amber",
-          },
-          {
-            label: "Out of Stock",
-            value: stats.outOfStock,
-            icon: XCircle,
-            color: "red",
-          },
-        ].map((stat, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-xl border border-slate-200 shadow-sm p-5"
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-lg bg-${stat.color}-50 flex items-center justify-center`}
-              >
-                <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-slate-500">{stat.label}</p>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-slate-500">
+              Total SKUs
+            </span>
+            <Package size={18} className="text-indigo-600" />
           </div>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by product name or SKU..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+          <p className="text-2xl font-bold text-slate-900">
+            {globalStats.totalSku}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-slate-500">
+              Out of Stock
+            </span>
+            <AlertCircle size={18} className="text-red-600" />
           </div>
-          <select
-            value={warehouseFilter}
-            onChange={(e) => setWarehouseFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {warehouses.map((w) => (
-              <option key={w} value={w}>
-                {w}
-              </option>
-            ))}
-          </select>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <select
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="all">All Stock Status</option>
-            <option value="in_stock">In Stock</option>
-            <option value="low_stock">Low Stock</option>
-            <option value="out_of_stock">Out of Stock</option>
-          </select>
+          <p className="text-2xl font-bold text-red-600">
+            {globalStats.outOfStock}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-slate-500">
+              Low Stock Items
+            </span>
+            <AlertTriangle size={18} className="text-amber-600" />
+          </div>
+          <p className="text-2xl font-bold text-amber-600">
+            {globalStats.lowStock}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-slate-500">
+              Total Inventory Value
+            </span>
+            <DollarSign size={18} className="text-emerald-600" />
+          </div>
+          <p className="text-2xl font-bold text-emerald-600">
+            PKR {globalStats.totalValue.toLocaleString()}
+          </p>
         </div>
       </div>
 
-      {/* Inventory Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm sticky top-0 z-10">
+        <div className="p-4 border-b border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div className="relative">
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <input
+                type="text"
+                placeholder="Search product, SKU, barcode..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <select
+              value={selectedVendor}
+              onChange={(e) => setSelectedVendor(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
+            >
+              <option value="all">All Vendors</option>
+              {vendors.map((vendor) => (
+                <option key={vendor.id} value={vendor.name}>
+                  {vendor.name} ({vendor.type})
+                </option>
+              ))}
+            </select>
+            <div className="relative">
+              <select
+                multiple
+                value={selectedCategories}
+                onChange={(e) =>
+                  setSelectedCategories(
+                    Array.from(e.target.selectedOptions, (opt) => opt.value),
+                  )
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm min-h-[40px]"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              <Layers
+                size={16}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              />
+            </div>
+            <div className="relative">
+              <select
+                multiple
+                value={selectedBrands}
+                onChange={(e) =>
+                  setSelectedBrands(
+                    Array.from(e.target.selectedOptions, (opt) => opt.value),
+                  )
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm min-h-[40px]"
+              >
+                {brands.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
+                ))}
+              </select>
+              <Tag
+                size={16}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              {["all", "inStock", "lowStock", "outOfStock"].map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setStockFilter(filter)}
+                  className={`px-3 py-2 rounded-lg text-sm capitalize ${
+                    stockFilter === filter
+                      ? "bg-indigo-50 text-indigo-600 border border-indigo-200"
+                      : "bg-slate-50 text-slate-600 border border-slate-200"
+                  }`}
+                >
+                  {filter === "all"
+                    ? "All"
+                    : filter.replace(/([A-Z])/g, " $1").trim()}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {selectedProductIds.length > 0 && (
+          <div className="px-4 py-2 bg-indigo-50 border-t border-indigo-100 flex items-center justify-between">
+            <span className="text-sm text-indigo-700">
+              {selectedProductIds.length} items selected
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleBulkAction("Change Price")}
+                className="px-3 py-1 text-sm bg-white rounded border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              >
+                Change Price
+              </button>
+              <button
+                onClick={() => handleBulkAction("Update Stock")}
+                className="px-3 py-1 text-sm bg-white rounded border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              >
+                Update Stock
+              </button>
+              <button
+                onClick={() => handleBulkAction("Export to CSV")}
+                className="px-3 py-1 text-sm bg-white rounded border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              >
+                Export
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px]">
-            <thead>
-              <tr className="bg-slate-50 text-left">
-                <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase">
-                  <SortIcon column="name" /> Product
+          <table className="w-full min-w-[1400px]">
+            <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
+              <tr>
+                <th className="p-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
                 </th>
-                <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase">
-                  SKU
+                <th className="p-3 text-left text-sm font-medium text-slate-700">
+                  Product Info
                 </th>
-                <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase">
-                  Warehouse
+                <th className="p-3 text-left text-sm font-medium text-slate-700">
+                  Owner/Source
                 </th>
-                <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase text-right">
-                  <SortIcon column="currentStock" /> Current
+                <th className="p-3 text-left text-sm font-medium text-slate-700">
+                  Pricing
                 </th>
-                <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase text-right">
-                  Available
+                <th className="p-3 text-left text-sm font-medium text-slate-700">
+                  Warehouse/Location
                 </th>
-                <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase text-center">
-                  Status
+                <th className="p-3 text-left text-sm font-medium text-slate-700">
+                  Current Stock
                 </th>
-                <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase text-right">
+                <th className="p-3 text-left text-sm font-medium text-slate-700">
+                  Alert At
+                </th>
+                <th className="p-3 text-left text-sm font-medium text-slate-700">
+                  Last Updated
+                </th>
+                <th className="p-3 text-left text-sm font-medium text-slate-700">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredInventory.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50">
-                  <td className="px-5 py-3">
-                    <p className="text-sm font-medium text-slate-900">
-                      {item.name}
-                    </p>
-                    <p className="text-xs text-slate-500">{item.category}</p>
+              {filteredProducts.map((product) => (
+                <tr key={product.id} className="hover:bg-slate-50">
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedProductIds.includes(product.id)}
+                      onChange={() => toggleProductSelection(product.id)}
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
                   </td>
-                  <td className="px-5 py-3">
-                    <span className="text-sm font-mono text-slate-600">
-                      {item.sku}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <Warehouse className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-sm text-slate-700">
-                        {item.warehouse}
-                      </span>
+                  <td className="p-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={product.thumbnail}
+                        alt={product.name}
+                        className="w-10 h-10 rounded-lg object-cover"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          {product.name}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {product.sku} | {product.barcode}
+                        </p>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-5 py-3 text-right">
-                    <span
-                      className={`text-sm font-bold ${
-                        item.currentStock === 0
-                          ? "text-red-600"
-                          : item.currentStock <= item.lowStockAlert
-                            ? "text-amber-600"
-                            : "text-slate-900"
-                      }`}
-                    >
-                      {item.currentStock}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-right text-sm text-slate-600">
-                    {item.available}
-                  </td>
-                  <td className="px-5 py-3 text-center">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        item.status === "In Stock"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : item.status === "Low Stock"
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-red-50 text-red-700"
-                      }`}
-                    >
-                      {item.status === "In Stock" ? (
-                        <CheckCircle2 className="w-3 h-3" />
-                      ) : item.status === "Low Stock" ? (
-                        <AlertTriangle className="w-3 h-3" />
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      {product.vendor.type === "shop" ? (
+                        <Store size={16} className="text-indigo-600" />
                       ) : (
-                        <XCircle className="w-3 h-3" />
+                        <Truck size={16} className="text-amber-600" />
                       )}
-                      {item.status}
-                    </span>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          {product.vendor.name}
+                        </p>
+                        <p className="text-xs text-slate-500 capitalize">
+                          {product.vendor.type}
+                        </p>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => setShowModal(item)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100"
+                  <td className="p-3">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        PKR {product.publicPrice.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Wholesale: PKR {product.wholesalePrice.toLocaleString()}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        {product.warehouse.name}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Shelf: {product.warehouse.shelf}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStockColor(product.stock, product.lowStockThreshold)}`}
                       >
-                        <Pencil className="w-3 h-3" /> Update
+                        {product.stock}
+                      </span>
+                      <button
+                        onClick={() => openStockModal(product)}
+                        className="text-indigo-600 hover:text-indigo-800"
+                      >
+                        <Edit size={14} />
+                      </button>
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <input
+                      type="number"
+                      defaultValue={product.lowStockThreshold}
+                      onBlur={(e) =>
+                        updateThreshold(product.id, parseInt(e.target.value))
+                      }
+                      className="w-16 px-2 py-1 border border-slate-200 rounded text-sm text-center"
+                    />
+                  </td>
+                  <td className="p-3 text-sm text-slate-600">
+                    {product.lastUpdated}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openAuditDrawer(product)}
+                        className="text-slate-500 hover:text-slate-700"
+                        title="Audit Trail"
+                      >
+                        <History size={16} />
+                      </button>
+                      <button
+                        className="text-indigo-600 hover:text-indigo-800"
+                        title="Edit"
+                      >
+                        <Pencil size={16} />
                       </button>
                     </div>
                   </td>
@@ -620,20 +714,154 @@ export default function InventoryPage() {
             </tbody>
           </table>
         </div>
-        {filteredInventory.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No inventory items found</p>
+        {filteredProducts.length === 0 && (
+          <div className="p-8 text-center text-slate-500">
+            <Package size={48} className="mx-auto mb-3 text-slate-300" />
+            <p>No products found matching your filters</p>
           </div>
         )}
       </div>
 
-      {showModal && (
-        <StockUpdateModal
-          item={showModal}
-          onClose={() => setShowModal(null)}
-          onSave={handleStockUpdate}
-        />
+      {showStockModal && currentProduct && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+              <h3 className="font-semibold text-slate-900">
+                Update Stock: {currentProduct.name}
+              </h3>
+              <button
+                onClick={() => setShowStockModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-700">Current Stock:</span>
+                <span className="font-medium">{currentProduct.stock}</span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  New Stock Quantity
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setNewStock(Math.max(0, newStock - 1))}
+                    className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <input
+                    type="number"
+                    value={newStock}
+                    onChange={(e) => setNewStock(parseInt(e.target.value) || 0)}
+                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-center"
+                  />
+                  <button
+                    onClick={() => setNewStock(newStock + 1)}
+                    className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Reason for Change
+                </label>
+                <select
+                  value={stockReason}
+                  onChange={(e) => setStockReason(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                >
+                  <option value="">Select reason</option>
+                  <option value="Restock">Restock</option>
+                  <option value="Sale">Sale</option>
+                  <option value="Damaged">Damaged</option>
+                  <option value="Return">Return</option>
+                  <option value="Adjustment">Adjustment</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200">
+              <button
+                onClick={() => setShowStockModal(false)}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveStockUpdate}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+              >
+                <Save size={16} /> Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAuditDrawer && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40"
+          onClick={() => setShowAuditDrawer(false)}
+        >
+          <div
+            className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl p-6 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-slate-900">
+                Stock Audit Trail
+              </h3>
+              <button
+                onClick={() => setShowAuditDrawer(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              {auditData.map((entry, idx) => (
+                <div
+                  key={idx}
+                  className="border border-slate-200 rounded-lg p-4"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-slate-900">
+                      {entry.user}
+                    </span>
+                    <span className="text-xs text-slate-500">{entry.date}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-red-600">{entry.oldStock}</span>
+                    <ArrowUpDown size={14} className="text-slate-400" />
+                    <span className="text-emerald-600 font-medium">
+                      {entry.newStock}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Reason: {entry.reason}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast.show && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+            toast.type === "success"
+              ? "bg-emerald-500 text-white"
+              : "bg-red-500 text-white"
+          }`}
+        >
+          <Check size={18} />
+          {toast.message}
+        </div>
       )}
     </div>
   );
