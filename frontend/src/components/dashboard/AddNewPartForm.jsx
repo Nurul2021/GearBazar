@@ -375,7 +375,7 @@ const initialOptions = {
   units: ["Pcs", "Set", "Pair", "Box", "Liter", "Kg", "Pack"],
 };
 
-export default function AddNewPartForm() {
+export default function AddNewPartForm({ vendorId: adminVendorId } = {}) {
   const dispatch = useDispatch();
   const dynamicOptions = useSelector(selectDynamicOptions);
   const newDynamicOptions = useSelector(selectNewDynamicOptions);
@@ -1374,49 +1374,44 @@ export default function AddNewPartForm() {
                     key={comp.id}
                     className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl"
                   >
-                    <select
-                      value={comp.make}
-                      onChange={(e) =>
-                        updateCompatibility(comp.id, "make", e.target.value)
-                      }
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="">Select Make</option>
-                      {carData.makes.map((make) => (
-                        <option key={make} value={make}>
-                          {make}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={comp.model}
-                      onChange={(e) =>
-                        updateCompatibility(comp.id, "model", e.target.value)
-                      }
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500"
-                      disabled={!comp.make}
-                    >
-                      <option value="">Select Model</option>
-                      {getSelectedModels(comp.make).map((model) => (
-                        <option key={model} value={model}>
-                          {model}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={comp.year}
-                      onChange={(e) =>
-                        updateCompatibility(comp.id, "year", e.target.value)
-                      }
-                      className="w-28 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="">Year</option>
-                      {carData.years.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex-1">
+                      <CreatableSelect
+                        label=""
+                        options={carData.makes}
+                        value={comp.make}
+                        onChange={(value) =>
+                          updateCompatibility(comp.id, "make", value)
+                        }
+                        placeholder="Select Make"
+                        icon={Car}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <CreatableSelect
+                        label=""
+                        options={getSelectedModels(comp.make)}
+                        value={comp.model}
+                        onChange={(value) =>
+                          updateCompatibility(comp.id, "model", value)
+                        }
+                        placeholder="Select Model"
+                        icon={Car}
+                        type="model"
+                      />
+                    </div>
+                    <div className="w-28">
+                      <CreatableSelect
+                        label=""
+                        options={carData.years.map(String)}
+                        value={comp.year}
+                        onChange={(value) =>
+                          updateCompatibility(comp.id, "year", value)
+                        }
+                        placeholder="Year"
+                        icon={Calendar}
+                        type="year"
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeCompatibility(comp.id)}
